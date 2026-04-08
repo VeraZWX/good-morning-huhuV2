@@ -139,7 +139,7 @@
                     <p class="form-hint">支持本地图片或网络链接（推荐尺寸：600×400）</p>
                 </div>
                 <div class="form-group"><label class="form-label">标签</label><input type="text" class="form-input" id="dishTag" placeholder="例如：招牌推荐"></div>
-                <div class="form-group"><label class="form-label">配料（用逗号分隔）</label><input type="text" class="form-input" id="dishIngredients" placeholder="例如：五花肉, 冰糖, 老抽"></div>
+                <div class="form-group"><label class="form-label">配料（用逗号分隔）</label><input type="text" class="form-input" id="dishIngredients" placeholder="例如：五花肉，冰糖，老抽"></div>
                 <div class="form-group"><label class="form-label">烹饪步骤</label><textarea class="form-textarea" id="dishMethod" placeholder="每步用换行分隔"></textarea></div>
             </div>
             <div class="modal-actions"><button class="btn-cancel" onclick="closeDishModal()">取消</button><button class="btn-save" id="saveDishBtn" onclick="saveDish()">保存</button></div>
@@ -156,7 +156,6 @@
         const SUPABASE_URL = 'https://gltwbooimlbviksiqdle.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsdHdib29pbWxidmlrc2lxZGxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDU2NDAsImV4cCI6MjA5MTE4MTY0MH0.X1mJkt7pr4LLxbKznoErOxRH6HwgjdYxLLoyCNriO-M';
         
-        // 初始化 Supabase 客户端（带错误处理）
         let supabase = null;
         try {
             if (window.supabase && window.supabase.createClient) {
@@ -168,19 +167,33 @@
         } catch (e) {
             console.error('❌ Supabase 初始化失败:', e);
         }
+        
         const defaultData = {
             categories: [{ id: 'meat', name: '荤菜系列' }, { id: 'vegetable', name: '素菜系列' }, { id: 'bbq', name: '烧烤系列' }, { id: 'cold', name: '凉菜系列' }, { id: 'staple', name: '主食系列' }],
             dishes: [
-                { id: 1, name: '赤山 · 红烧肉', category: 'meat', image: 'https://images.unsplash.com/photo-1544928147-79a2dbc1f389?w=600&h=400&fit=crop', tag: '招牌推荐', ingredients: ['五花肉', '冰糖', '老抽', '八角', '桂皮', '生姜', '料酒'], method: '1. 五花肉切块焯水去腥\n2. 锅中放少许油，小火炒化冰糖至焦糖色\n3. 放入肉块翻炒上色，加葱姜八角桂皮\n4. 倒入料酒、老抽，加开水没过肉块\n5. 大火烧开转小火焖煮1小时\n6. 大火收汁至浓稠，装盘撒葱花' },
-                { id: 2, name: '金沙 · 红烧排骨', category: 'meat', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop', tag: '经典美味', ingredients: ['猪排骨', '生抽', '料酒', '白糖', '葱姜', '八角'], method: '1. 排骨冷水下锅焯水\n2. 热锅冷油，下排骨煎至金黄\n3. 加入葱姜八角爆香\n4. 倒入料酒、生抽、白糖翻炒\n5. 加开水没过排骨炖40分钟\n6. 大火收汁即可出锅' },
+                { id: 1, name: '赤山 · 红烧肉', category: 'meat', image: 'https://images.unsplash.com/photo-1544928147-79a2dbc1f389?w=600&h=400&fit=crop', tag: '招牌推荐', ingredients: ['五花肉', '冰糖', '老抽', '八角', '桂皮', '生姜', '料酒'], method: '1. 五花肉切块焯水去腥\n2. 锅中放少许油，小火炒化冰糖至焦糖色\n3. 放入肉块翻炒上色，加葱姜八角桂皮\n4. 倒入料酒、老抽，加开水没过肉块\n5. 大火烧开转小火焖煮 1 小时\n6. 大火收汁至浓稠，装盘撒葱花' },
+                { id: 2, name: '金沙 · 红烧排骨', category: 'meat', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop', tag: '经典美味', ingredients: ['猪排骨', '生抽', '料酒', '白糖', '葱姜', '八角'], method: '1. 排骨冷水下锅焯水\n2. 热锅冷油，下排骨煎至金黄\n3. 加入葱姜八角爆香\n4. 倒入料酒、生抽、白糖翻炒\n5. 加开水没过排骨炖 40 分钟\n6. 大火收汁即可出锅' },
                 { id: 3, name: '银丝 · 酸辣土豆', category: 'vegetable', image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&h=400&fit=crop', tag: '爽脆开胃', ingredients: ['土豆', '干辣椒', '花椒', '醋', '蒜末', '葱丝'], method: '1. 土豆切细丝，清水浸泡\n2. 热锅下油，炸香花椒粒\n3. 下干辣椒、蒜末爆香\n4. 大火下土豆丝翻炒\n5. 沿锅边淋入醋\n6. 翻炒均匀即可出锅' },
                 { id: 4, name: '翡翠 · 蒜泥空心菜', category: 'vegetable', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&h=400&fit=crop', tag: '清新爽口', ingredients: ['空心菜', '大蒜', '生抽', '蚝油', '盐'], method: '1. 空心菜洗净切段\n2. 大蒜切末\n3. 热锅下油，爆香蒜末\n4. 下空心菜快速翻炒\n5. 加生抽、蚝油调味\n6. 大火快炒至断生即可' }
             ],
             nextDishId: 5
         };
+        
         let menuData = null, editingDishId = null, nextDishId = 5;
-        function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
-        function showToast(msg, type = 'success') { const t = document.createElement('div'); t.className = 'success-toast'; t.style.background = type === 'success' ? '#2ecc71' : '#e74c3c'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
+        
+        function showLoading(show) { 
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; 
+        }
+        
+        function showToast(msg, type = 'success') { 
+            const t = document.createElement('div'); 
+            t.className = 'success-toast'; 
+            t.style.background = type === 'success' ? '#2ecc71' : '#e74c3c'; 
+            t.textContent = msg; 
+            document.body.appendChild(t); 
+            setTimeout(() => t.remove(), 3000); 
+        }
+        
         function loadLocalData() {
             const localData = localStorage.getItem('menuData');
             if (localData) { 
@@ -202,56 +215,51 @@
         
         async function loadData() {
             console.log('🔄 开始加载数据...');
-            
-            // 如果 Supabase 不可用，直接使用本地存储
+            // 始终先加载本地数据，确保页面快速显示
+            loadLocalData();
+            // 如果 Supabase 不可用，直接返回
             if (!supabase) {
                 console.log('ℹ️ Supabase 不可用，使用本地存储');
-                loadLocalData();
                 return true;
             }
-            
+            // 后台异步同步 Supabase（不阻塞）
+            syncFromSupabase();
+            return true;
+        }
+        
+        async function syncFromSupabase() {
             try {
-                console.log('🔄 尝试从 Supabase 加载...');
-                
-                // 3秒超时
+                console.log('🔄 后台同步 Supabase 数据...');
+                const fetchPromise = supabase.from('menu_data').select('*').eq('id', 1).single();
                 const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('timeout')), 3000)
+                    setTimeout(() => reject(new Error('timeout')), 5000)
                 );
-                
-                const supabasePromise = supabase.from('menu_data').select('*').eq('id', 1).single();
-                const result = await Promise.race([supabasePromise, timeoutPromise]);
+                const result = await Promise.race([fetchPromise, timeoutPromise]);
                 const { data, error } = result;
-                
                 if (error && error.code !== 'PGRST116') {
-                    throw error;
+                    console.log('⚠️ Supabase 返回错误:', error.message);
+                    return;
                 }
-                
                 if (data && data.categories && data.dishes) { 
-                    // Supabase 有数据，使用云端数据
                     menuData = { categories: data.categories, dishes: data.dishes }; 
                     nextDishId = data.next_dish_id || 5;
                     localStorage.setItem('menuData', JSON.stringify({ ...menuData, nextDishId }));
-                    console.log('✅ 从 Supabase 加载数据成功');
-                    return true;
+                    renderNavLinks(); 
+                    renderMainContent(); 
+                    updateCategorySelect();
+                    console.log('✅ 从 Supabase 同步数据成功');
                 }
             } catch (e) {
-                console.warn('⚠️ Supabase 加载失败:', e.message || e);
+                console.warn('⚠️ Supabase 同步失败:', e.message || e);
             }
-            
-            // Supabase 不可用或失败，使用本地存储
-            loadLocalData();
-            return true;
         }
+        
         async function saveData() {
-            // 保存到本地存储（始终执行）
             localStorage.setItem('menuData', JSON.stringify({ ...menuData, nextDishId }));
-            
-            // 如果 Supabase 可用，尝试同步到云端
             if (!supabase) {
                 console.log('ℹ️ Supabase 不可用，仅保存到本地');
                 return false;
             }
-            
             try {
                 const { error } = await supabase.from('menu_data').upsert({ 
                     id: 1, 
@@ -260,7 +268,6 @@
                     next_dish_id: nextDishId, 
                     updated_at: new Date().toISOString() 
                 }, { onConflict: 'id' });
-                
                 if (error) throw error;
                 console.log('✅ 数据已同步到 Supabase');
                 return true;
@@ -269,7 +276,15 @@
                 return false;
             }
         }
-        async function deleteDish(id) { if (!confirm('确定要删除这道菜品吗？')) return; menuData.dishes = menuData.dishes.filter(d => d.id !== id); const s = await saveData(); showToast(s ? '删除成功' : '已保存到本地', s ? 'success' : 'error'); renderMainContent(); }
+        
+        async function deleteDish(id) { 
+            if (!confirm('确定要删除这道菜品吗？')) return; 
+            menuData.dishes = menuData.dishes.filter(d => d.id !== id); 
+            const s = await saveData(); 
+            showToast(s ? '删除成功' : '已保存到本地', s ? 'success' : 'error'); 
+            renderMainContent(); 
+        }
+        
         async function init() { 
             showLoading(true); 
             try {
@@ -283,21 +298,178 @@
                 showLoading(false); 
             }
         }
-        function renderNavLinks() { document.getElementById('navLinks').innerHTML = menuData.categories.map((c, i) => `<a href="#${c.id}" class="nav-link ${i === 0 ? 'active' : ''}">${c.name}</a>`).join(''); document.querySelectorAll('.nav-link').forEach(l => { l.addEventListener('click', function(e) { e.preventDefault(); document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('active')); this.classList.add('active'); const el = document.getElementById(this.getAttribute('href').substring(1)); if (el) window.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' }); }); }); }
-        function renderMainContent() { document.getElementById('mainContent').innerHTML = menuData.categories.map(c => { const d = menuData.dishes.filter(x => x.category === c.id); return `<section class="category-section" id="${c.id}"><h2 class="section-title">${c.name}</h2><div class="dishes-grid">${d.map(x => renderDishCard(x)).join('')}</div></section>`; }).join(''); }
-        function renderDishCard(d) { return `<article class="dish-card" data-id="${d.id}"><div class="dish-image-container"><img src="${d.image}" alt="${d.name}" class="dish-image"><span class="dish-tag">${d.tag}</span><div class="card-actions"><button class="edit-btn" onclick="event.stopPropagation();openEditDishModal(${d.id})" title="编辑">✏️</button><button class="delete-btn" onclick="event.stopPropagation();deleteDish(${d.id})" title="删除">🗑️</button></div></div><div class="dish-content" onclick="toggleDetails(this.parentElement)"><h3 class="dish-name">${d.name}</h3><p class="click-hint">点击查看详情 ↓</p></div><div class="dish-details"><div class="details-inner"><div class="detail-section"><div class="detail-title">精选配料</div><div class="dish-ingredients">${d.ingredients.map(i => `<span class="ingredient">${i}</span>`).join('')}</div></div><div class="detail-section"><div class="detail-title">烹饪步骤</div><div class="dish-method">${d.method.replace(/\n/g, '<br>')}</div></div></div></div><div class="click-indicator">⌄</div></article>`; }
-        function toggleDetails(card) { const d = card.querySelector('.dish-details'); document.querySelectorAll('.dish-details.show').forEach(x => { if (x !== d) { x.classList.remove('show'); x.closest('.dish-card').classList.remove('expanded'); } }); d.classList.toggle('show'); card.classList.toggle('expanded'); }
-        function updateCategorySelect() { document.getElementById('dishCategory').innerHTML = menuData.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); }
-        function handleImageUpload(input) { if (input.files && input.files[0]) { const f = input.files[0]; if (!f.type.startsWith('image/')) { alert('请选择图片文件'); return; } if (f.size > 5 * 1024 * 1024) { alert('图片大小不能超过 5MB'); return; } const r = new FileReader(); r.onload = function(e) { document.getElementById('dishImage').value = e.target.result; showPreview(e.target.result); }; r.readAsDataURL(f); } }
-        function showPreview(src) { const p = document.getElementById('imagePreview'); const i = document.getElementById('previewImg'); i.src = src; p.style.display = 'inline-block'; }
-        function removeImage() { document.getElementById('dishImage').value = ''; document.getElementById('dishImageFile').value = ''; document.getElementById('imagePreview').style.display = 'none'; }
-        function openAddDishModal() { editingDishId = null; document.getElementById('dishModalTitle').textContent = '新增菜品'; document.getElementById('saveDishBtn').textContent = '添加'; document.getElementById('dishName').value = ''; document.getElementById('dishImage').value = ''; document.getElementById('dishImageFile').value = ''; document.getElementById('dishTag').value = ''; document.getElementById('dishIngredients').value = ''; document.getElementById('dishMethod').value = ''; document.getElementById('imagePreview').style.display = 'none'; document.getElementById('dishModal').classList.add('show'); }
-        function openEditDishModal(id) { editingDishId = id; const d = menuData.dishes.find(x => x.id === id); if (!d) return; document.getElementById('dishModalTitle').textContent = '编辑菜品'; document.getElementById('saveDishBtn').textContent = '保存修改'; document.getElementById('dishName').value = d.name; document.getElementById('dishCategory').value = d.category; document.getElementById('dishImage').value = d.image; document.getElementById('dishImageFile').value = ''; document.getElementById('dishTag').value = d.tag; document.getElementById('dishIngredients').value = d.ingredients.join(', '); document.getElementById('dishMethod').value = d.method; if (d.image) showPreview(d.image); else removeImage(); document.getElementById('dishModal').classList.add('show'); }
-        function closeDishModal() { document.getElementById('dishModal').classList.remove('show'); editingDishId = null; }
-        function closeCategoryModal() { document.getElementById('categoryModal').classList.remove('show'); }
-        async function saveDish() { const name = document.getElementById('dishName').value.trim(); const category = document.getElementById('dishCategory').value; const image = document.getElementById('dishImage').value.trim(); const tag = document.getElementById('dishTag').value.trim(); const ingredients = document.getElementById('dishIngredients').value.split(',').map(x => x.trim()).filter(x => x); const method = document.getElementById('dishMethod').value.trim(); if (!name) { alert('请输入菜品名称'); return; } if (editingDishId) { const idx = menuData.dishes.findIndex(x => x.id === editingDishId); if (idx !== -1) menuData.dishes[idx] = { ...menuData.dishes[idx], name, category, image, tag, ingredients, method }; } else { menuData.dishes.push({ id: nextDishId++, name, category, image, tag, ingredients, method }); } const s = await saveData(); showToast(s ? '保存成功' : '已保存到本地', s ? 'success' : 'error'); closeDishModal(); renderMainContent(); }
-        async function saveCategory() { const name = document.getElementById('categoryName').value.trim(); if (!name) { alert('请输入系列名称'); return; } const id = 'cat_' + Date.now(); menuData.categories.push({ id, name }); await saveData(); renderNavLinks(); renderMainContent(); updateCategorySelect(); closeCategoryModal(); showToast('系列添加成功'); document.getElementById('categoryName').value = ''; }
-        function openAddCategoryModal() { document.getElementById('categoryModal').classList.add('show'); }
+        
+        function renderNavLinks() { 
+            document.getElementById('navLinks').innerHTML = menuData.categories.map((c, i) => 
+                `<a href="#${c.id}" class="nav-link ${i === 0 ? 'active' : ''}">${c.name}</a>`
+            ).join(''); 
+            document.querySelectorAll('.nav-link').forEach(l => { 
+                l.addEventListener('click', function(e) { 
+                    e.preventDefault(); 
+                    document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('active')); 
+                    this.classList.add('active'); 
+                    const el = document.getElementById(this.getAttribute('href').substring(1)); 
+                    if (el) window.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' }); 
+                }); 
+            }); 
+        }
+        
+        function renderMainContent() { 
+            document.getElementById('mainContent').innerHTML = menuData.categories.map(c => { 
+                const d = menuData.dishes.filter(x => x.category === c.id); 
+                return `<section class="category-section" id="${c.id}"><h2 class="section-title">${c.name}</h2><div class="dishes-grid">${d.map(x => renderDishCard(x)).join('')}</div></section>`; 
+            }).join(''); 
+        }
+        
+        function renderDishCard(d) { 
+            return `<article class="dish-card" data-id="${d.id}">
+                <div class="dish-image-container">
+                    <img src="${d.image}" alt="${d.name}" class="dish-image">
+                    <span class="dish-tag">${d.tag}</span>
+                    <div class="card-actions">
+                        <button class="edit-btn" onclick="event.stopPropagation();openEditDishModal(${d.id})" title="编辑">✏️</button>
+                        <button class="delete-btn" onclick="event.stopPropagation();deleteDish(${d.id})" title="删除">🗑️</button>
+                    </div>
+                </div>
+                <div class="dish-content" onclick="toggleDetails(this.parentElement)">
+                    <h3 class="dish-name">${d.name}</h3>
+                    <p class="click-hint">点击查看详情 ↓</p>
+                </div>
+                <div class="dish-details">
+                    <div class="details-inner">
+                        <div class="detail-section">
+                            <div class="detail-title">精选配料</div>
+                            <div class="dish-ingredients">${d.ingredients.map(i => `<span class="ingredient">${i}</span>`).join('')}</div>
+                        </div>
+                        <div class="detail-section">
+                            <div class="detail-title">烹饪步骤</div>
+                            <div class="dish-method">${d.method.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="click-indicator">⌄</div>
+            </article>`; 
+        }
+        
+        function toggleDetails(card) { 
+            const d = card.querySelector('.dish-details'); 
+            document.querySelectorAll('.dish-details.show').forEach(x => { 
+                if (x !== d) { x.classList.remove('show'); x.closest('.dish-card').classList.remove('expanded'); } 
+            }); 
+            d.classList.toggle('show'); 
+            card.classList.toggle('expanded'); 
+        }
+        
+        function updateCategorySelect() { 
+            document.getElementById('dishCategory').innerHTML = menuData.categories.map(c => 
+                `<option value="${c.id}">${c.name}</option>`
+            ).join(''); 
+        }
+        
+        function handleImageUpload(input) { 
+            if (input.files && input.files[0]) { 
+                const f = input.files[0]; 
+                if (!f.type.startsWith('image/')) { alert('请选择图片文件'); return; } 
+                if (f.size > 5 * 1024 * 1024) { alert('图片大小不能超过 5MB'); return; } 
+                const r = new FileReader(); 
+                r.onload = function(e) { 
+                    document.getElementById('dishImage').value = e.target.result; 
+                    showPreview(e.target.result); 
+                }; 
+                r.readAsDataURL(f); 
+            } 
+        }
+        
+        function showPreview(src) { 
+            const p = document.getElementById('imagePreview'); 
+            const i = document.getElementById('previewImg'); 
+            i.src = src; 
+            p.style.display = 'inline-block'; 
+        }
+        
+        function removeImage() { 
+            document.getElementById('dishImage').value = ''; 
+            document.getElementById('dishImageFile').value = ''; 
+            document.getElementById('imagePreview').style.display = 'none'; 
+        }
+        
+        function openAddDishModal() { 
+            editingDishId = null; 
+            document.getElementById('dishModalTitle').textContent = '新增菜品'; 
+            document.getElementById('saveDishBtn').textContent = '添加'; 
+            document.getElementById('dishName').value = ''; 
+            document.getElementById('dishImage').value = ''; 
+            document.getElementById('dishImageFile').value = ''; 
+            document.getElementById('dishTag').value = ''; 
+            document.getElementById('dishIngredients').value = ''; 
+            document.getElementById('dishMethod').value = ''; 
+            document.getElementById('imagePreview').style.display = 'none'; 
+            document.getElementById('dishModal').classList.add('show'); 
+        }
+        
+        function openEditDishModal(id) { 
+            editingDishId = id; 
+            const d = menuData.dishes.find(x => x.id === id); 
+            if (!d) return; 
+            document.getElementById('dishModalTitle').textContent = '编辑菜品'; 
+            document.getElementById('saveDishBtn').textContent = '保存修改'; 
+            document.getElementById('dishName').value = d.name; 
+            document.getElementById('dishCategory').value = d.category; 
+            document.getElementById('dishImage').value = d.image; 
+            document.getElementById('dishImageFile').value = ''; 
+            document.getElementById('dishTag').value = d.tag; 
+            document.getElementById('dishIngredients').value = d.ingredients.join(', '); 
+            document.getElementById('dishMethod').value = d.method; 
+            if (d.image) showPreview(d.image); else removeImage(); 
+            document.getElementById('dishModal').classList.add('show'); 
+        }
+        
+        function closeDishModal() { 
+            document.getElementById('dishModal').classList.remove('show'); 
+            editingDishId = null; 
+        }
+        
+        function closeCategoryModal() { 
+            document.getElementById('categoryModal').classList.remove('show'); 
+        }
+        
+        async function saveDish() { 
+            const name = document.getElementById('dishName').value.trim(); 
+            const category = document.getElementById('dishCategory').value; 
+            const image = document.getElementById('dishImage').value.trim(); 
+            const tag = document.getElementById('dishTag').value.trim(); 
+            const ingredients = document.getElementById('dishIngredients').value.split(',').map(x => x.trim()).filter(x => x); 
+            const method = document.getElementById('dishMethod').value.trim(); 
+            if (!name) { alert('请输入菜品名称'); return; } 
+            if (editingDishId) { 
+                const idx = menuData.dishes.findIndex(x => x.id === editingDishId); 
+                if (idx !== -1) menuData.dishes[idx] = { ...menuData.dishes[idx], name, category, image, tag, ingredients, method }; 
+            } else { 
+                menuData.dishes.push({ id: nextDishId++, name, category, image, tag, ingredients, method }); 
+            } 
+            const s = await saveData(); 
+            showToast(s ? '保存成功' : '已保存到本地', s ? 'success' : 'error'); 
+            closeDishModal(); 
+            renderMainContent(); 
+        }
+        
+        async function saveCategory() { 
+            const name = document.getElementById('categoryName').value.trim(); 
+            if (!name) { alert('请输入系列名称'); return; } 
+            const id = 'cat_' + Date.now(); 
+            menuData.categories.push({ id, name }); 
+            await saveData(); 
+            renderNavLinks(); 
+            renderMainContent(); 
+            updateCategorySelect(); 
+            closeCategoryModal(); 
+            showToast('系列添加成功'); 
+            document.getElementById('categoryName').value = ''; 
+        }
+        
+        function openAddCategoryModal() { 
+            document.getElementById('categoryModal').classList.add('show'); 
+        }
         
         // 页面加载完成后初始化
         if (document.readyState === 'loading') {
@@ -305,3 +477,6 @@
         } else {
             init();
         }
+    </script>
+</body>
+</html>
