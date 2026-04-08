@@ -171,16 +171,40 @@
         function showToast(msg, type = 'success') { const t = document.createElement('div'); t.className = 'success-toast'; t.style.background = type === 'success' ? '#2ecc71' : '#e74c3c'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
         async function loadData() {
             try {
-                const { data, error } = await supabase.from('menu_data').select('*').eq('id', 1).single();
+                // 添加 5 秒超时机制
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Supabase 请求超时')), 5000)
+                );
+                const supabasePromise = supabase.from('menu_data').select('*').eq('id', 1).single();
+                
+                const { data, error } = await Promise.race([supabasePromise, timeoutPromise]);
+                
                 if (error && error.code !== 'PGRST116') throw error;
-                if (data) { menuData = { categories: data.categories, dishes: data.dishes }; nextDishId = data.next_dish_id || 5; }
-                else { menuData = JSON.parse(JSON.stringify(defaultData)); nextDishId = 5; await saveData(); }
+                if (data) { 
+                    menuData = { categories: data.categories, dishes: data.dishes }; 
+                    nextDishId = data.next_dish_id || 5; 
+                    console.log('✅ 从 Supabase 加载数据成功');
+                }
+                else { 
+                    menuData = JSON.parse(JSON.stringify(defaultData)); 
+                    nextDishId = 5; 
+                    await saveData(); 
+                }
                 return true;
             } catch (e) {
-                console.error('Supabase 加载失败，使用本地存储:', e);
+                console.error('⚠️ Supabase 加载失败，使用本地存储:', e.message);
                 const localData = localStorage.getItem('menuData');
-                if (localData) { const p = JSON.parse(localData); menuData = p; nextDishId = p.nextDishId || 5; }
-                else { menuData = JSON.parse(JSON.stringify(defaultData)); nextDishId = 5; }
+                if (localData) { 
+                    const p = JSON.parse(localData); 
+                    menuData = p; 
+                    nextDishId = p.nextDishId || 5; 
+                    console.log('✅ 从本地存储加载数据成功');
+                }
+                else { 
+                    menuData = JSON.parse(JSON.stringify(defaultData)); 
+                    nextDishId = 5; 
+                    console.log('✅ 使用默认数据');
+                }
                 return true;
             }
         }
