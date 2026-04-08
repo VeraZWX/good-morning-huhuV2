@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Good morning, 呼呼</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        :root { --warm-cream: #FDF6E3; --warm-orange: #E8A87C; --warm-brown: #8B5A2B; --warm-yellow: #F5D76E; --warm-red: #C96B4A; --text-dark: #4A3728; --text-light: #7A6656; --card-bg: #FFFBF5; --shadow-soft: rgba(139, 90, 43, 0.15); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Serif SC', serif; background: linear-gradient(135deg, var(--warm-cream) 0%, #FAE8D4 50%, var(--warm-cream) 100%); min-height: 100vh; color: var(--text-dark); overflow-x: hidden; }
+        .navbar { position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(180deg, rgba(253, 246, 227, 0.98) 0%, rgba(253, 246, 227, 0.95) 100%); backdrop-filter: blur(10px); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 20px var(--shadow-soft); z-index: 1000; border-bottom: 2px solid var(--warm-orange); }
+        .logo { font-family: 'ZCOOL XiaoWei', serif; font-size: 1.6rem; color: var(--warm-red); text-shadow: 2px 2px 4px rgba(201, 107, 74, 0.2); letter-spacing: 2px; flex-shrink: 0; }
+        .nav-center { display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; }
+        .nav-link { text-decoration: none; color: var(--text-dark); font-size: 0.95rem; font-weight: 600; padding: 0.5rem 1rem; border-radius: 25px; transition: all 0.3s ease; }
+        .nav-link:hover { color: var(--warm-red); background: rgba(232, 168, 124, 0.15); }
+        .nav-link.active { background: linear-gradient(135deg, var(--warm-orange), var(--warm-red)); color: white; box-shadow: 0 4px 15px rgba(232, 168, 124, 0.4); }
+        .nav-actions { display: flex; gap: 0.8rem; flex-shrink: 0; }
+        .action-btn { display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border: none; border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-family: 'Noto Serif SC', serif; }
+        .btn-add-dish { background: linear-gradient(135deg, var(--warm-orange), var(--warm-red)); color: white; box-shadow: 0 4px 15px rgba(232, 168, 124, 0.3); }
+        .btn-add-category { background: white; color: var(--warm-brown); border: 2px solid var(--warm-orange); }
+        .main-content { padding: 8rem 2rem 4rem; max-width: 1400px; margin: 0 auto; }
+        .section-title { font-family: 'Ma Shan Zheng', cursive; font-size: 2.5rem; color: var(--warm-brown); text-align: center; margin-bottom: 3rem; }
+        .section-title::after { content: ''; display: block; width: 80px; height: 4px; background: linear-gradient(90deg, var(--warm-orange), var(--warm-red)); margin: 1rem auto 0; border-radius: 2px; }
+        .dishes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 4rem; }
+        .dish-card { background: var(--card-bg); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 30px var(--shadow-soft); transition: all 0.4s ease; position: relative; cursor: pointer; animation: fadeInUp 0.6s ease backwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .dish-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 15px 50px rgba(139, 90, 43, 0.25); }
+        .dish-image { width: 100%; height: 220px; object-fit: cover; transition: transform 0.4s ease; }
+        .dish-card:hover .dish-image { transform: scale(1.05); }
+        .dish-image-container { overflow: hidden; position: relative; }
+        .dish-tag { position: absolute; top: 12px; right: 12px; background: rgba(255, 255, 255, 0.95); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: var(--warm-red); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); z-index: 1; }
+        .card-actions { position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; z-index: 2; opacity: 0; transition: opacity 0.3s ease; }
+        .dish-card:hover .card-actions { opacity: 1; }
+        .edit-btn, .delete-btn { width: 36px; height: 36px; background: rgba(255, 255, 255, 0.95); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); }
+        .edit-btn:hover { background: var(--warm-orange); color: white; }
+        .delete-btn:hover { background: #e74c3c; color: white; }
+        .dish-content { padding: 1.2rem 1.5rem; }
+        .dish-name { font-size: 1.3rem; font-weight: 700; color: var(--text-dark); font-family: 'ZCOOL XiaoWei', serif; text-align: center; letter-spacing: 1px; }
+        .click-hint { text-align: center; font-size: 0.85rem; color: var(--text-light); margin-top: 0.8rem; opacity: 0.7; }
+        .dish-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; background: linear-gradient(180deg, rgba(232, 168, 124, 0.05) 0%, rgba(245, 215, 110, 0.08) 100%); }
+        .dish-details.show { max-height: 600px; }
+        .details-inner { padding: 1.5rem; border-top: 1px dashed rgba(232, 168, 124, 0.3); }
+        .detail-section { margin-bottom: 1rem; }
+        .detail-title { font-size: 0.9rem; font-weight: 600; color: var(--warm-brown); margin-bottom: 0.6rem; }
+        .dish-ingredients { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .ingredient { background: linear-gradient(135deg, rgba(232, 168, 124, 0.2), rgba(245, 215, 110, 0.2)); padding: 0.3rem 0.7rem; border-radius: 12px; font-size: 0.85rem; color: var(--text-light); }
+        .dish-method { font-size: 0.9rem; color: var(--text-light); line-height: 1.8; background: rgba(255, 255, 255, 0.5); padding: 1rem; border-radius: 12px; border-left: 3px solid var(--warm-orange); }
+        .category-section { margin-bottom: 5rem; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: var(--card-bg); border-radius: 20px; padding: 2rem; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--warm-orange); }
+        .modal-title { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); font-family: 'ZCOOL XiaoWei', serif; }
+        .modal-close { width: 36px; height: 36px; border: none; background: rgba(232, 168, 124, 0.2); border-radius: 50%; cursor: pointer; font-size: 1.5rem; color: var(--text-light); }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-label { display: block; font-weight: 600; color: var(--text-dark); margin-bottom: 0.5rem; font-size: 0.95rem; }
+        .form-input, .form-textarea, .form-select { width: 100%; padding: 0.8rem 1rem; border: 2px solid rgba(232, 168, 124, 0.3); border-radius: 12px; font-size: 1rem; font-family: 'Noto Serif SC', serif; background: white; color: var(--text-dark); }
+        .form-textarea { min-height: 120px; resize: vertical; }
+        .modal-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .btn-cancel, .btn-save { flex: 1; padding: 0.8rem 1.5rem; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: 'Noto Serif SC', serif; }
+        .btn-cancel { border: 2px solid var(--warm-orange); background: white; color: var(--warm-brown); }
+        .btn-save { border: none; background: linear-gradient(135deg, var(--warm-orange), var(--warm-red)); color: white; }
+        .footer { text-align: center; padding: 3rem 2rem; color: var(--text-light); font-size: 0.9rem; border-top: 1px solid rgba(232, 168, 124, 0.3); margin-top: 4rem; }
+        .success-toast { position: fixed; bottom: 20px; right: 20px; background: #2ecc71; color: white; padding: 1rem 1.5rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 9999; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Good morning, 呼呼</div>
+        <div class="nav-center" id="navLinks"></div>
+        <div class="nav-actions">
+            <button class="action-btn btn-add-dish" onclick="openAddDishModal()">➕ 新增菜单</button>
+            <button class="action-btn btn-add-category" onclick="openAddCategoryModal()">📁 新增系列</button>
+        </div>
+    </nav>
+    <main class="main-content" id="mainContent"></main>
+    <footer class="footer">用心烹饪，温暖每一餐 ❤</footer>
+    
+    <div class="modal-overlay" id="dishModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="dishModalTitle">新增菜品</h3>
+                <button class="modal-close" onclick="closeDishModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label class="form-label">菜品名称</label><input type="text" class="form-input" id="dishName" placeholder="例如：赤山 · 红烧肉"></div>
+                <div class="form-group"><label class="form-label">所属系列</label><select class="form-select" id="dishCategory"></select></div>
+                <div class="form-group"><label class="form-label">图片链接</label><input type="text" class="form-input" id="dishImage" placeholder="图片URL"></div>
+                <div class="form-group"><label class="form-label">标签</label><input type="text" class="form-input" id="dishTag" placeholder="例如：招牌推荐"></div>
+                <div class="form-group"><label class="form-label">配料（逗号分隔）</label><input type="text" class="form-input" id="dishIngredients" placeholder="五花肉, 冰糖, 老抽"></div>
+                <div class="form-group"><label class="form-label">烹饪步骤</label><textarea class="form-textarea" id="dishMethod" placeholder="每步用换行分隔"></textarea></div>
+            </div>
+            <div class="modal-actions"><button class="btn-cancel" onclick="closeDishModal()">取消</button><button class="btn-save" onclick="saveDish()">保存</button></div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="categoryModal">
+        <div class="modal">
+            <div class="modal-header"><h3 class="modal-title">新增系列</h3><button class="modal-close" onclick="closeCategoryModal()">×</button></div>
+            <div class="modal-body"><div class="form-group"><label class="form-label">系列名称</label><input type="text" class="form-input" id="categoryName" placeholder="例如：海鲜系列"></div></div>
+            <div class="modal-actions"><button class="btn-cancel" onclick="closeCategoryModal()">取消</button><button class="btn-save" onclick="saveCategory()">保存</button></div>
+        </div>
+    </div>
+
+    <script>
+        const defaultData = {
+            categories: [
+                { id: 'meat', name: '荤菜系列' }, 
+                { id: 'vegetable', name: '素菜系列' }, 
+                { id: 'bbq', name: '烧烤系列' }
+            ],
+            dishes: [
+                { id: 1, name: '赤山 · 红烧肉', category: 'meat', image: 'https://images.unsplash.com/photo-1544928147-79a2dbc1f389?w=600&h=400&fit=crop', tag: '招牌推荐', ingredients: ['五花肉', '冰糖', '老抽', '八角'], method: '1. 五花肉切块焯水\n2. 小火炒化冰糖至焦糖色\n3. 放入肉块翻炒上色\n4. 焖煮1小时' },
+                { id: 2, name: '金沙 · 红烧排骨', category: 'meat', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop', tag: '经典美味', ingredients: ['猪排骨', '生抽', '料酒'], method: '1. 排骨焯水\n2. 煎至金黄\n3. 炖煮40分钟' }
+            ],
+            nextDishId: 3
+        };
+
+        let menuData = null;
+        let editingDishId = null;
+        let nextDishId = 3;
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = 'success-toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function loadData() {
+            const localData = localStorage.getItem('menuData');
+            if (localData) {
+                try {
+                    const p = JSON.parse(localData);
+                    menuData = p;
+                    nextDishId = p.nextDishId || 3;
+                    console.log('✅ 从本地存储加载');
+                } catch (e) {
+                    console.error('解析失败:', e);
+                    menuData = JSON.parse(JSON.stringify(defaultData));
+                    nextDishId = 3;
+                }
+            } else {
+                menuData = JSON.parse(JSON.stringify(defaultData));
+                nextDishId = 3;
+                console.log('✅ 使用默认数据');
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('menuData', JSON.stringify({ ...menuData, nextDishId }));
+            console.log('✅ 已保存到本地');
+        }
+
+        function renderNavLinks() {
+            document.getElementById('navLinks').innerHTML = menuData.categories.map((c, i) => 
+                `<a href="#${c.id}" class="nav-link ${i === 0 ? 'active' : ''}">${c.name}</a>`
+            ).join('');
+            document.querySelectorAll('.nav-link').forEach(l => {
+                l.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('active'));
+                    this.classList.add('active');
+                    const el = document.getElementById(this.getAttribute('href').substring(1));
+                    if (el) window.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' });
+                });
+            });
+        }
+
+        function renderMainContent() {
+            document.getElementById('mainContent').innerHTML = menuData.categories.map(c => {
+                const d = menuData.dishes.filter(x => x.category === c.id);
+                return `<section class="category-section" id="${c.id}">
+                    <h2 class="section-title">${c.name}</h2>
+                    <div class="dishes-grid">${d.map(x => renderDishCard(x)).join('')}</div>
+                </section>`;
+            }).join('');
+        }
+
+        function renderDishCard(d) {
+            return `<article class="dish-card" data-id="${d.id}">
+                <div class="dish-image-container">
+                    <img src="${d.image}" alt="${d.name}" class="dish-image">
+                    <span class="dish-tag">${d.tag}</span>
+                    <div class="card-actions">
+                        <button class="edit-btn" onclick="event.stopPropagation();openEditDishModal(${d.id})">✏️</button>
+                        <button class="delete-btn" onclick="event.stopPropagation();deleteDish(${d.id})">🗑️</button>
+                    </div>
+                </div>
+                <div class="dish-content" onclick="toggleDetails(this.parentElement)">
+                    <h3 class="dish-name">${d.name}</h3>
+                    <p class="click-hint">点击查看详情 ↓</p>
+                </div>
+                <div class="dish-details">
+                    <div class="details-inner">
+                        <div class="detail-section">
+                            <div class="detail-title">精选配料</div>
+                            <div class="dish-ingredients">${d.ingredients.map(i => `<span class="ingredient">${i}</span>`).join('')}</div>
+                        </div>
+                        <div class="detail-section">
+                            <div class="detail-title">烹饪步骤</div>
+                            <div class="dish-method">${d.method.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    </div>
+                </div>
+            </article>`;
+        }
+
+        function toggleDetails(card) {
+            const d = card.querySelector('.dish-details');
+            document.querySelectorAll('.dish-details.show').forEach(x => x.classList.remove('show'));
+            d.classList.toggle('show');
+        }
+
+        function updateCategorySelect() {
+            document.getElementById('dishCategory').innerHTML = menuData.categories.map(c => 
+                `<option value="${c.id}">${c.name}</option>`
+            ).join('');
+        }
+
+        function deleteDish(id) {
+            if (!confirm('确定要删除这道菜品吗？')) return;
+            menuData.dishes = menuData.dishes.filter(d => d.id !== id);
+            saveData();
+            showToast('删除成功');
+            renderMainContent();
+        }
+
+        function openAddDishModal() {
+            editingDishId = null;
+            document.getElementById('dishModalTitle').textContent = '新增菜品';
+            document.getElementById('dishName').value = '';
+            document.getElementById('dishImage').value = '';
+            document.getElementById('dishTag').value = '';
+            document.getElementById('dishIngredients').value = '';
+            document.getElementById('dishMethod').value = '';
+            document.getElementById('dishModal').classList.add('show');
+        }
+
+        function openEditDishModal(id) {
+            editingDishId = id;
+            const d = menuData.dishes.find(x => x.id === id);
+            if (!d) return;
+            document.getElementById('dishModalTitle').textContent = '编辑菜品';
+            document.getElementById('dishName').value = d.name;
+            document.getElementById('dishCategory').value = d.category;
+            document.getElementById('dishImage').value = d.image;
+            document.getElementById('dishTag').value = d.tag;
+            document.getElementById('dishIngredients').value = d.ingredients.join(', ');
+            document.getElementById('dishMethod').value = d.method;
+            document.getElementById('dishModal').classList.add('show');
+        }
+
+        function closeDishModal() {
+            document.getElementById('dishModal').classList.remove('show');
+            editingDishId = null;
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('show');
+        }
+
+        function saveDish() {
+            const name = document.getElementById('dishName').value.trim();
+            const category = document.getElementById('dishCategory').value;
+            const image = document.getElementById('dishImage').value.trim();
+            const tag = document.getElementById('dishTag').value.trim();
+            const ingredients = document.getElementById('dishIngredients').value.split(',').map(x => x.trim()).filter(x => x);
+            const method = document.getElementById('dishMethod').value.trim();
+            if (!name) { alert('请输入菜品名称'); return; }
+            if (editingDishId) {
+                const idx = menuData.dishes.findIndex(x => x.id === editingDishId);
+                if (idx !== -1) menuData.dishes[idx] = { ...menuData.dishes[idx], name, category, image, tag, ingredients, method };
+            } else {
+                menuData.dishes.push({ id: nextDishId++, name, category, image, tag, ingredients, method });
+            }
+            saveData();
+            showToast('保存成功');
+            closeDishModal();
+            renderMainContent();
+        }
+
+        function saveCategory() {
+            const name = document.getElementById('categoryName').value.trim();
+            if (!name) { alert('请输入系列名称'); return; }
+            const id = 'cat_' + Date.now();
+            menuData.categories.push({ id, name });
+            saveData();
+            renderNavLinks();
+            renderMainContent();
+            updateCategorySelect();
+            closeCategoryModal();
+            showToast('系列添加成功');
+            document.getElementById('categoryName').value = '';
+        }
+
+        function openAddCategoryModal() {
+            document.getElementById('categoryModal').classList.add('show');
+        }
+
+        // 初始化
+        console.log('🚀 开始初始化...');
+        loadData();
+        renderNavLinks();
+        renderMainContent();
+        updateCategorySelect();
+        console.log('✅ 初始化完成');
+    </script>
+</body>
+</html>
