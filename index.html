@@ -155,7 +155,19 @@
     <script>
         const SUPABASE_URL = 'https://gltwbooimlbviksiqdle.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsdHdib29pbWxidmlrc2lxZGxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDU2NDAsImV4cCI6MjA5MTE4MTY0MH0.X1mJkt7pr4LLxbKznoErOxRH6HwgjdYxLLoyCNriO-M';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // 初始化 Supabase 客户端（带错误处理）
+        let supabase = null;
+        try {
+            if (window.supabase && window.supabase.createClient) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('✅ Supabase 客户端初始化成功');
+            } else {
+                console.warn('⚠️ Supabase 库未加载，将使用本地存储');
+            }
+        } catch (e) {
+            console.error('❌ Supabase 初始化失败:', e);
+        }
         const defaultData = {
             categories: [{ id: 'meat', name: '荤菜系列' }, { id: 'vegetable', name: '素菜系列' }, { id: 'bbq', name: '烧烤系列' }, { id: 'cold', name: '凉菜系列' }, { id: 'staple', name: '主食系列' }],
             dishes: [
@@ -169,59 +181,108 @@
         let menuData = null, editingDishId = null, nextDishId = 5;
         function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
         function showToast(msg, type = 'success') { const t = document.createElement('div'); t.className = 'success-toast'; t.style.background = type === 'success' ? '#2ecc71' : '#e74c3c'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
-        async function loadData() {
-            try {
-                // 添加 5 秒超时机制
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Supabase 请求超时')), 5000)
-                );
-                const supabasePromise = supabase.from('menu_data').select('*').eq('id', 1).single();
-                
-                const { data, error } = await Promise.race([supabasePromise, timeoutPromise]);
-                
-                if (error && error.code !== 'PGRST116') throw error;
-                if (data) { 
-                    menuData = { categories: data.categories, dishes: data.dishes }; 
-                    nextDishId = data.next_dish_id || 5; 
-                    console.log('✅ 从 Supabase 加载数据成功');
-                }
-                else { 
-                    menuData = JSON.parse(JSON.stringify(defaultData)); 
-                    nextDishId = 5; 
-                    await saveData(); 
-                }
-                return true;
-            } catch (e) {
-                console.error('⚠️ Supabase 加载失败，使用本地存储:', e.message);
-                const localData = localStorage.getItem('menuData');
-                if (localData) { 
+        function loadLocalData() {
+            const localData = localStorage.getItem('menuData');
+            if (localData) { 
+                try {
                     const p = JSON.parse(localData); 
                     menuData = p; 
                     nextDishId = p.nextDishId || 5; 
                     console.log('✅ 从本地存储加载数据成功');
+                    return true;
+                } catch (e) {
+                    console.error('❌ 本地存储数据解析失败:', e);
                 }
-                else { 
-                    menuData = JSON.parse(JSON.stringify(defaultData)); 
-                    nextDishId = 5; 
-                    console.log('✅ 使用默认数据');
-                }
+            }
+            menuData = JSON.parse(JSON.stringify(defaultData)); 
+            nextDishId = 5; 
+            console.log('✅ 使用默认数据');
+            return false;
+        }
+        
+        async function loadData() {
+            console.log('🔄 开始加载数据...');
+            
+            // 如果 Supabase 不可用，直接使用本地存储
+            if (!supabase) {
+                console.log('ℹ️ Supabase 不可用，使用本地存储');
+                loadLocalData();
                 return true;
             }
+            
+            try {
+                console.log('🔄 尝试从 Supabase 加载...');
+                
+                // 3秒超时
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('timeout')), 3000)
+                );
+                
+                const supabasePromise = supabase.from('menu_data').select('*').eq('id', 1).single();
+                const result = await Promise.race([supabasePromise, timeoutPromise]);
+                const { data, error } = result;
+                
+                if (error && error.code !== 'PGRST116') {
+                    throw error;
+                }
+                
+                if (data && data.categories && data.dishes) { 
+                    // Supabase 有数据，使用云端数据
+                    menuData = { categories: data.categories, dishes: data.dishes }; 
+                    nextDishId = data.next_dish_id || 5;
+                    localStorage.setItem('menuData', JSON.stringify({ ...menuData, nextDishId }));
+                    console.log('✅ 从 Supabase 加载数据成功');
+                    return true;
+                }
+            } catch (e) {
+                console.warn('⚠️ Supabase 加载失败:', e.message || e);
+            }
+            
+            // Supabase 不可用或失败，使用本地存储
+            loadLocalData();
+            return true;
         }
         async function saveData() {
+            // 保存到本地存储（始终执行）
+            localStorage.setItem('menuData', JSON.stringify({ ...menuData, nextDishId }));
+            
+            // 如果 Supabase 可用，尝试同步到云端
+            if (!supabase) {
+                console.log('ℹ️ Supabase 不可用，仅保存到本地');
+                return false;
+            }
+            
             try {
-                const { error } = await supabase.from('menu_data').upsert({ id: 1, categories: menuData.categories, dishes: menuData.dishes, next_dish_id: nextDishId, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+                const { error } = await supabase.from('menu_data').upsert({ 
+                    id: 1, 
+                    categories: menuData.categories, 
+                    dishes: menuData.dishes, 
+                    next_dish_id: nextDishId, 
+                    updated_at: new Date().toISOString() 
+                }, { onConflict: 'id' });
+                
                 if (error) throw error;
-                localStorage.setItem('menuData', JSON.stringify({ ...menuData, nextDishId }));
+                console.log('✅ 数据已同步到 Supabase');
                 return true;
             } catch (e) {
-                console.error('保存失败:', e);
-                localStorage.setItem('menuData', JSON.stringify({ ...menuData, nextDishId }));
+                console.warn('⚠️ Supabase 保存失败，仅保存到本地:', e.message || e);
                 return false;
             }
         }
         async function deleteDish(id) { if (!confirm('确定要删除这道菜品吗？')) return; menuData.dishes = menuData.dishes.filter(d => d.id !== id); const s = await saveData(); showToast(s ? '删除成功' : '已保存到本地', s ? 'success' : 'error'); renderMainContent(); }
-        async function init() { showLoading(true); await loadData(); renderNavLinks(); renderMainContent(); updateCategorySelect(); showLoading(false); }
+        async function init() { 
+            showLoading(true); 
+            try {
+                await loadData(); 
+                renderNavLinks(); 
+                renderMainContent(); 
+                updateCategorySelect(); 
+            } catch (e) {
+                console.error('初始化失败:', e);
+            } finally {
+                showLoading(false); 
+            }
+        }
         function renderNavLinks() { document.getElementById('navLinks').innerHTML = menuData.categories.map((c, i) => `<a href="#${c.id}" class="nav-link ${i === 0 ? 'active' : ''}">${c.name}</a>`).join(''); document.querySelectorAll('.nav-link').forEach(l => { l.addEventListener('click', function(e) { e.preventDefault(); document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('active')); this.classList.add('active'); const el = document.getElementById(this.getAttribute('href').substring(1)); if (el) window.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' }); }); }); }
         function renderMainContent() { document.getElementById('mainContent').innerHTML = menuData.categories.map(c => { const d = menuData.dishes.filter(x => x.category === c.id); return `<section class="category-section" id="${c.id}"><h2 class="section-title">${c.name}</h2><div class="dishes-grid">${d.map(x => renderDishCard(x)).join('')}</div></section>`; }).join(''); }
         function renderDishCard(d) { return `<article class="dish-card" data-id="${d.id}"><div class="dish-image-container"><img src="${d.image}" alt="${d.name}" class="dish-image"><span class="dish-tag">${d.tag}</span><div class="card-actions"><button class="edit-btn" onclick="event.stopPropagation();openEditDishModal(${d.id})" title="编辑">✏️</button><button class="delete-btn" onclick="event.stopPropagation();deleteDish(${d.id})" title="删除">🗑️</button></div></div><div class="dish-content" onclick="toggleDetails(this.parentElement)"><h3 class="dish-name">${d.name}</h3><p class="click-hint">点击查看详情 ↓</p></div><div class="dish-details"><div class="details-inner"><div class="detail-section"><div class="detail-title">精选配料</div><div class="dish-ingredients">${d.ingredients.map(i => `<span class="ingredient">${i}</span>`).join('')}</div></div><div class="detail-section"><div class="detail-title">烹饪步骤</div><div class="dish-method">${d.method.replace(/\n/g, '<br>')}</div></div></div></div><div class="click-indicator">⌄</div></article>`; }
@@ -237,4 +298,10 @@
         async function saveDish() { const name = document.getElementById('dishName').value.trim(); const category = document.getElementById('dishCategory').value; const image = document.getElementById('dishImage').value.trim(); const tag = document.getElementById('dishTag').value.trim(); const ingredients = document.getElementById('dishIngredients').value.split(',').map(x => x.trim()).filter(x => x); const method = document.getElementById('dishMethod').value.trim(); if (!name) { alert('请输入菜品名称'); return; } if (editingDishId) { const idx = menuData.dishes.findIndex(x => x.id === editingDishId); if (idx !== -1) menuData.dishes[idx] = { ...menuData.dishes[idx], name, category, image, tag, ingredients, method }; } else { menuData.dishes.push({ id: nextDishId++, name, category, image, tag, ingredients, method }); } const s = await saveData(); showToast(s ? '保存成功' : '已保存到本地', s ? 'success' : 'error'); closeDishModal(); renderMainContent(); }
         async function saveCategory() { const name = document.getElementById('categoryName').value.trim(); if (!name) { alert('请输入系列名称'); return; } const id = 'cat_' + Date.now(); menuData.categories.push({ id, name }); await saveData(); renderNavLinks(); renderMainContent(); updateCategorySelect(); closeCategoryModal(); showToast('系列添加成功'); document.getElementById('categoryName').value = ''; }
         function openAddCategoryModal() { document.getElementById('categoryModal').classList.add('show'); }
-        init();
+        
+        // 页面加载完成后初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
