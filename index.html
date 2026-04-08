@@ -213,20 +213,7 @@
             return false;
         }
         
-        async function loadData() {
-            console.log('🔄 开始加载数据...');
-            // 始终先加载本地数据，确保页面快速显示
-            loadLocalData();
-            // 如果 Supabase 不可用，直接返回
-            if (!supabase) {
-                console.log('ℹ️ Supabase 不可用，使用本地存储');
-                return true;
-            }
-            // 后台异步同步 Supabase（不阻塞）
-            syncFromSupabase();
-            return true;
-        }
-        
+
         async function syncFromSupabase() {
             try {
                 console.log('🔄 后台同步 Supabase 数据...');
@@ -285,17 +272,25 @@
             renderMainContent(); 
         }
         
-        async function init() { 
-            showLoading(true); 
+        function init() { 
+            console.log('🚀 开始初始化...');
             try {
-                await loadData(); 
+                // 同步加载本地数据，确保立即显示
+                loadLocalData();
+                // 立即渲染页面
                 renderNavLinks(); 
                 renderMainContent(); 
-                updateCategorySelect(); 
+                updateCategorySelect();
+                console.log('✅ 页面渲染完成');
+                // 隐藏加载界面
+                showLoading(false);
+                // 后台异步同步 Supabase
+                if (supabase) {
+                    syncFromSupabase();
+                }
             } catch (e) {
-                console.error('初始化失败:', e);
-            } finally {
-                showLoading(false); 
+                console.error('❌ 初始化失败:', e);
+                showLoading(false);
             }
         }
         
